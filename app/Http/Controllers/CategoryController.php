@@ -40,7 +40,7 @@ class CategoryController extends Controller
     }
     public function show($id){
         try{
-            $category = Category::find($id);
+            $category = Category::with("getUser")->find($id);
             if($category){
                 return response()->json([
                    'status' => 'success',
