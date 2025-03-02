@@ -52,18 +52,19 @@ public function store(Request $request)
             'user_id' => $request->user_id,
         ];
 
+
         if ($request->hasFile('image')) {
             $image = $request->file('image');
 
             if ($request->has('old_image') && $request->old_image) {
-                $oldImagePath = storage_path('product_image') . '/' . $request->old_image;
+                $oldImagePath = storage_path('app/public/product_image/')  . $request->old_image;
                 if (file_exists($oldImagePath)) {
                     unlink($oldImagePath);
                 }
             }
 
             $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $image->move(storage_path('product_image'), $imageName);
+            $image->storeAs('public/product_image', $imageName);
             $productData['image'] = $imageName;
         }
         $product = Product::create($productData);
@@ -155,10 +156,19 @@ public function show ($id){
     }
 }
 
-public function destroy(Product $product){
+public function destroy($id){
     try{
+        $product = Product::find($id);
+        if (!$product) {
+            return response()->json([
+               'message' => 'Product not found.',
+            ], 404);
+        }
         $product->delete();
-        return response()->json(['message'=>'Product deleted successfully']);
+        return response()->json([
+           'message' => 'Product deleted successfully',
+        ], 204);
+
     }
     catch(\Exception $ex){
         return response()->json(['message'=>'error', 'error'=>$ex->getMessage()]);

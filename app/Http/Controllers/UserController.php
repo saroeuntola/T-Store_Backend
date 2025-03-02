@@ -21,7 +21,7 @@ class UserController extends Controller
             $user->roles = $user->getRoleNames(); // Assuming Spatie Roles & Permissions package
         }
 
-        return response()->json(['users' => $users]);
+        return response()->json(['user' => $users]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
@@ -48,6 +48,7 @@ public function store(Request $request)
         'username' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:6|confirmed',
+        'sex' => 'required|string',
         'roles' => 'required'
     ]);
 
@@ -55,8 +56,10 @@ public function store(Request $request)
         'username' => $validated['username'],
         'email' => $validated['email'],
         'password' => Hash::make($validated['password']),
-    ]);
+        'sex' => $validated['sex'],
 
+
+    ]);
     $user->assignRole($request->input('roles'));
     return response()->json([
         'access' => true,
@@ -76,16 +79,10 @@ public function store(Request $request)
         ], 404);
     }
 
-    $userData = [
-        'id' => $user->id,
-        'username' => $user->username,
-        'email' => $user->email,
-        'roles' => $user->roles,
-    ];
 
     return response()->json([
         'status' => 'success',
-        'data' => $userData,
+        'user' => $user,
     ]);
 }
 
@@ -109,7 +106,7 @@ public function store(Request $request)
 
             $user->update($request->all());
             $user->syncRoles($request->input('roles'));
-            return response()->json(['message' => 'Update successful', 'data' => $user], 200);
+            return response()->json(['message' => 'Update successful', 'user' => $user], 200);
         } catch (\Exception $ex) {
             return response()->json(['message' => $ex->getMessage()], 500);
         }
@@ -181,7 +178,7 @@ public function updatePassword(Request $request, $id)
 {
     try {
         $validator = Validator::make($request->all(), [
-            'profile' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Assuming 2MB file size limit for profile pictures
+            'profile' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB file size limit
         ]);
 
         if ($validator->fails()) {
@@ -193,31 +190,35 @@ public function updatePassword(Request $request, $id)
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        $userData = [];
         if ($request->hasFile('profile')) {
             $image = $request->file('profile');
 
             // Delete old image if it exists
-            if ($request->has('old_image') && $request->old_image) {
-                $oldImagePath = storage_path('user_image'). '/' . $request->old_image;
+            if ($user->profile) {
+                $oldImagePath = storage_path('app/public/user_image/') . $user->profile;
                 if (file_exists($oldImagePath)) {
                     unlink($oldImagePath);
                 }
             }
 
-            $imageName = time(). '.'. $image->getClientOriginalExtension();
-            $image->move(storage_path('user_image'), $imageName);
-            $userData['profile'] = $imageName;
+            // Store the new image in storage/app/public/user_image/
+            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('public/user_image', $imageName);
+
+            // Update user profile field
+            $user->profile = $imageName;
+            $user->save();
         }
-        // Update the product
-        $user->update($userData);
 
-
-        return response()->json(['message' => 'Profile picture added successfully', 'data' => $user], 201);
+        return response()->json([
+            'message' => 'Profile picture added successfully',
+            'user' => $user
+        ], 201);
     } catch (\Exception $ex) {
         return response()->json(['message' => $ex->getMessage()], 500);
     }
 }
+
 
 
 
