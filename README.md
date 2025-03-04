@@ -1,3 +1,5 @@
-docker-compose up --build -d
-docker exec -it laravel-api sh ./laravelCMD.sh
+
+php artisan migrate
+php artisan db:seed --class=PermissionSeeder
+php artisan db:seed --class=AdminSeeder
 

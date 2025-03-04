@@ -8,7 +8,7 @@ class CategoryController extends Controller
 {
     public function index(){
             try{
-                $category = Category::all();
+                $category = Category::with("getUser")->get();
                 return response()->json([
                    'status' => 'success',
                     'category' => $category
