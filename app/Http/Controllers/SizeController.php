@@ -11,7 +11,7 @@ class SizeController extends Controller
      public function index(){
 
         try{
-            $size = Size::all();
+            $size = Size::with("getUser")->get();
             return response()->json([
                'status' => 'success',
                 'size' => $size
@@ -55,7 +55,7 @@ class SizeController extends Controller
 
     public function show($id){
         try {
-            $size = Size::find($id);
+             $size = Size::with("getUser")->find($id);
             if (!$size) {
                 return response()->json([
                    'message' => 'Size not found.',
@@ -89,10 +89,14 @@ class SizeController extends Controller
                 ], 404);
             }
             $size->update($request->all());
+            return response()->json([
+               'message' => 'Size updated successfully!',
+                'size' => $size,
+            ], 200);
        }
         catch (\Exception $e){
             return response()->json(['error' => $e->getMessage()], 500);
-            
+
         }
 
 

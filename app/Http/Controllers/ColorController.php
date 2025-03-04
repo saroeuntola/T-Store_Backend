@@ -19,8 +19,13 @@ class ColorController extends Controller
     public function index()
     {
         try {
-            $colors = Color::all();
-            return response()->json($colors, 200);
+            $colors = Color::with("getUser")->get();
+   return response()->json([
+            'message' => 'successfully!',
+            'color' => $colors,
+        ], 200);
+
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error retrieving colors.',
@@ -55,16 +60,21 @@ class ColorController extends Controller
     public function show($id)
     {
         try {
-            $color = Color::find($id);
+            $color = Color::with("getUser")->find($id);
             if (!$color) {
                 return response()->json([
                     'message' => 'Color not found.',
                 ], 404);
             }
-            return response()->json($color, 200);
+            return response()->json([
+               'message' => 'Color retrieved successfully!',
+                'color' => $color,
+            ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error retrieving color.',
+
             ], 500);
         }
     }
@@ -108,6 +118,7 @@ class ColorController extends Controller
             $color->delete();
             return response()->json([
                 'message' => 'Color deleted successfully.',
+                'color' => $color,
             ], 204);
         } catch (\Exception $e) {
             return response()->json([
