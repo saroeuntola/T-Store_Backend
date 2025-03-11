@@ -86,61 +86,69 @@ public function store(Request $request)
 }
 
 
-public function update(Request $request, Product $product){
-    try{
-
+public function update(Request $request, $id)
+{
+    try {
+        // Validate request
         $validator = Validator::make($request->all(), [
-            'name' => 'nullable|string',
+          'name' => 'required|string',
             'image' => 'nullable|image',
             'description' => 'nullable|string',
-            'price' => 'nullable|numeric',
-            'category_id' => 'nullable|integer',
-            'user_id' => 'nullable|integer',
-            'size_id' => 'nullable|array',
-            'color_id' => 'nullable|array',
+            'price' => 'required|numeric',
+            'category_id' => 'required|integer',
+            'user_id' => 'required|integer',
+            'size_id' => 'required|array',
+            'color_id' => 'required|array',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 400);
         }
-
-
-        $productData = [];
+        $product = Product::find($id);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+          $productData = [
+            'name' => $request->name,
+            'description' => $request->description,
+            'price' => $request->price,
+            'category_id' => $request->category_id,  
+            'user_id' => $request->user_id,
+        ];
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-
-
-            if ($request->has('old_image') && $request->old_image) {
-                $oldImagePath = storage_path('product_image'). '/' . $request->old_image;
+            if ($product->image) {
+                $oldImagePath = storage_path('app/public/product_image/') . $product->image;
                 if (file_exists($oldImagePath)) {
                     unlink($oldImagePath);
                 }
             }
-
-            $imageName = time(). '.'. $image->getClientOriginalExtension();
-            $image->move(storage_path('product_image'), $imageName);
+            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('public/product_image', $imageName);
             $productData['image'] = $imageName;
         }
 
+
         $product->update($productData);
 
-
-        if ($request->has('size_id') && $request->size_id) {
+        if ($request->has('size_id')) {
             $product->sizes()->sync($request->size_id);
         }
-        if ($request->has('color_id') && $request->color_id) {
+
+        if ($request->has('color_id')) {
             $product->colors()->sync($request->color_id);
         }
         $product->load('sizes', 'colors');
+
         return response()->json([
-           'message' => 'Updated successfully',
+            'message' => 'Updated successfully',
             'product' => $product
         ], 200);
-    }
-    catch(\Exception $ex){
-        return response()->json(['message'=>'error', 'error'=>$ex->getMessage()]);
+    } catch (\Exception $ex) {
+        return response()->json(['message' => 'error', 'error' => $ex->getMessage()], 500);
     }
 }
+
 public function show ($id){
     try{
         $product = Product::with('getCategory','getUser','sizes', 'colors')->find($id);
@@ -175,7 +183,22 @@ public function destroy($id){
     }
 }
 
-
+   public function updateStatus($id)
+{
+    try {
+        $user = Product::find($id);
+        if ($user) {
+            $newStatus = $user->status === 'Instock' ? 'Outstock' : 'Instock';
+            $user->status = $newStatus;
+            $user->save();
+            return response()->json(['message' => 'Product status updated.']);
+        } else {
+            return response()->json(['message' => 'Product not found.'], 404);
+        }
+    } catch (\Exception $e) {
+        return response()->json(['message' => $e->getMessage()], 400);
+    }
+}
 
 
 }

@@ -9,9 +9,13 @@ use Illuminate\Support\Facades\Validator;
 
 class OrdersController extends Controller
 {
-    /**
-     * Store a new order in the database.
-     */
+     public function __construct(){
+
+        $this->middleware('permission:order-create|order-edit|order-delete', ['only' => ['store','update','destroy']]);
+        $this->middleware('permission:order-create', ['only' => ['store']]);
+        $this->middleware('permission:order-edit', ['only' => ['update']]);
+        $this->middleware('permission:order-delete', ['only' => ['destroy']]);
+    }
 
      public function index(){
         try{
@@ -73,7 +77,7 @@ class OrdersController extends Controller
 
     public function update(Request $request, $id){
         try{
-     
+
             $order = Orders::find($id);
             if($order){
                 $order->update($request->all());

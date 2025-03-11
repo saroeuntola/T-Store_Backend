@@ -8,10 +8,16 @@ use Illuminate\Support\Facades\Validator;
 
 class BannerController extends Controller
 {
-
+   public function __construct()
+    {
+        $this->middleware('permission:banner-create|banner-edit|banner-delete', ['only' => ['update', 'store', 'destroy']]);
+        $this->middleware('permission:banner-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:banner-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:banner-delete', ['only' => ['destroy']]);
+    }
     public function index(){
         try{
-            $banner = Banner::all();
+            $banner = Banner::with("getUser")->get();
             return response()->json([
                'status' => 'success',
                 'banner' => $banner
@@ -23,12 +29,14 @@ class BannerController extends Controller
             ], 500);
         }
     }
-
-    public function store(Request $request)
+public function store(Request $request)
 {
     try {
         $validator = Validator::make($request->all(), [
-            'banner_image' => 'required|image|mimes:jpeg,png,jpg,gif',
+            'title' => 'required|string',
+            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            'description' => 'required|string',
+            'link' => 'required|string',
             'user_id' => 'required|integer'
         ]);
 
@@ -36,24 +44,34 @@ class BannerController extends Controller
             return response()->json(['error' => $validator->errors()], 400);
         }
 
-       if ($request->hasFile('banner_image')) {
+        $bannerImage = [
+            'title' => $request->title,
+            'description' => $request->description,
+            'link' => $request->link,
+            'user_id' => $request->user_id,
+        ];
+
+        if ($request->hasFile('banner_image')) {
             $image = $request->file('banner_image');
 
-            // Delete old image if it exists
+            // Delete old image if exists
             if ($request->has('old_image') && $request->old_image) {
-                $oldImagePath = storage_path('banner_image'). '/' . $request->old_image;
+                $oldImagePath = storage_path("app/public/banner_image/") . $request->old_image;
                 if (file_exists($oldImagePath)) {
                     unlink($oldImagePath);
                 }
             }
-            $imageName = time(). '.'. $image->getClientOriginalExtension();
-            $image->move(storage_path('banner_image'), $imageName);
+
+            // Store new image
+            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('public/banner_image/', $imageName);
             $bannerImage['banner_image'] = $imageName;
         }
-        // Update the product
+
         $banner = Banner::create($bannerImage);
+
         return response()->json([
-           'status' => 'success',
+            'status' => 'success',
             'banner' => $banner
         ]);
     } catch (\Exception $e) {
@@ -63,6 +81,7 @@ class BannerController extends Controller
         ], 500);
     }
 }
+
 
     public function destroy($id){
         try{
@@ -86,28 +105,40 @@ class BannerController extends Controller
     public function update(Request $request, $id){
         try {
         $validator = Validator::make($request->all(), [
-            'banner_image' => 'required|image|mimes:jpeg,png,jpg,gif',
+            'title' => 'required|string',
+           'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            'description' => 'required|string',
+            'link' => 'required|string',
             'user_id' => 'required|integer'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 400);
         }
+        $bannerImage =[
+            'title' => $request->title,
+            'description' => $request->description,
+            'link' => $request->link,
+            'user_id' => $request->user_id,
+        ];
 
        if ($request->hasFile('banner_image')) {
             $image = $request->file('banner_image');
 
-            // Delete old image if it exists
+            // Delete old image if exists
             if ($request->has('old_image') && $request->old_image) {
-                $oldImagePath = storage_path('banner_image'). '/' . $request->old_image;
+                $oldImagePath = storage_path("app/public/banner_image/") . $request->old_image;
                 if (file_exists($oldImagePath)) {
                     unlink($oldImagePath);
                 }
             }
-            $imageName = time(). '.'. $image->getClientOriginalExtension();
-            $image->move(storage_path('banner_image'), $imageName);
+
+            // Store new image
+            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('public/banner_image/', $imageName);
             $bannerImage['banner_image'] = $imageName;
         }
+
         $banner = Banner::find($id);
         $banner->update($bannerImage);
         return response()->json([
@@ -125,7 +156,7 @@ class BannerController extends Controller
 
     public function show($id){
         try{
-            $banner = Banner::find($id);
+            $banner = Banner::with('getUser')->find($id);
             if($banner){
                 return response()->json([
                    'status' => 'success',

@@ -8,6 +8,13 @@ use Illuminate\Support\Facades\Validator;
 
 class SizeController extends Controller
 {
+      public function __construct(){
+
+        $this->middleware('permission:size-create|size-edit|size-delete', ['only' => ['store','update','destroy']]);
+        $this->middleware('permission:size-create', ['only' => ['store']]);
+        $this->middleware('permission:size-edit', ['only' => ['update']]);
+        $this->middleware('permission:size-delete', ['only' => ['destroy']]);
+    }
      public function index(){
 
         try{

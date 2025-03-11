@@ -5,21 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Banner extends Model
+class Brand extends Model
 {
     use HasFactory;
-
-    protected $table = 'banner';
+    protected $table = 'brand';
     protected $primaryKey = 'id';
     protected $fillable = [
-        'title',
-        'description',
-        'banner_image',
-        'link',
+        'brand_name',
+        'image',
         'user_id'
     ];
 
-        public function getUser (){
+    public function getUser (){
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 }
