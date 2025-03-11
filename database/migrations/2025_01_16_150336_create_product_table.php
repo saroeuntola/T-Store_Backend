@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('image')->nullable();
             $table->string('description')->nullable();
+             $table->string("status")-> default ("Instock")->comment('1=Instok,2=Outstock');
             $table->float('price');
             $table->unsignedBigInteger('category_id');
             $table->foreign('category_id')->references('id')->on('category')->onDelete('cascade');

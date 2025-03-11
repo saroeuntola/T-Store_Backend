@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\OrdersController;
@@ -35,7 +36,10 @@ Route::post('register', [AuthController::class, 'register']);
 Route::prefix('products')->group(function(){
     Route::get('/list', [ProductController::class, 'index']);
     Route::get('/show/{id}', [ProductController::class, 'show']);
+
 });
+Route::get('banner/list', [BannerController::class, 'index']);
+ Route::get('brand/list', [BrandController::class, 'index']);
 
 
 // protected route
@@ -50,12 +54,12 @@ Route::middleware('jwt.auth')->group(function () {
         Route::post('/create', [ProductController::class,'store']);
         Route::post('/update/{id}', [ProductController::class,'update']);
         Route::delete('/delete/{id}', [ProductController::class,'destroy']);
+        Route::put('/update_status/{id}', [ProductController::class, 'UpdateStatus']);
     });
 
     Route::apiResource('/orders',OrdersController::class);
     Route::apiResource('/colors',ColorController::class);
     Route::apiResource('/sizes',SizeController::class);
-    Route::apiResource('/banner',BannerController::class);
     Route::post('/update_banner/{id}', [BannerController::class, 'update']);
 
     Route::prefix('users')->group(function () {
@@ -68,6 +72,19 @@ Route::middleware('jwt.auth')->group(function () {
             Route::put('/update_status/{id}', [UserController::class, 'UpdateStatus']);
             Route::post('/upload_profile/{id}', [UserController::class, 'addProfilePicture']);
 
+        });
+         Route::prefix('brand')->group(function () {
+            Route::post('/create', [BrandController::class, 'store']);
+            Route::get('/show/{id}', [BrandController::class, 'show']);
+            Route::post('/update/{id}', [BrandController::class, 'update']);
+            Route::delete('/delete/{id}', [BrandController::class, 'destroy']);
+        });
+
+        Route::prefix('banner')->group(function () {
+            Route::post('/create', [BannerController::class, 'store']);
+            Route::get('/show/{id}', [BannerController::class, 'show']);
+            Route::post('/update/{id}', [BannerController::class, 'update']);
+            Route::delete('/delete/{id}', [BannerController::class, 'destroy']);
         });
          Route::prefix('roles')->group(function () {
             Route::get('/list', [RolesController::class, 'index']);

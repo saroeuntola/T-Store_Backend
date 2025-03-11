@@ -6,6 +6,13 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 class CategoryController extends Controller
 {
+      public function __construct(){
+
+        $this->middleware('permission:category-create|category-edit|category-delete', ['only' => ['store','update','destroy']]);
+        $this->middleware('permission:category-create', ['only' => ['store']]);
+        $this->middleware('permission:category-edit', ['only' => ['update']]);
+        $this->middleware('permission:category-delete', ['only' => ['destroy']]);
+    }
     public function index(){
             try{
                 $category = Category::with("getUser")->get();

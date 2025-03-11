@@ -9,8 +9,9 @@ use Illuminate\Support\Facades\Validator;
 class ColorController extends Controller
 {
 
-    public function __construct(){
-        $this->middleware('permission:color-list|color-create|color-edit|color-delete', ['only' => ['index','store','update','destroy']]);
+     public function __construct(){
+
+        $this->middleware('permission:color-create|color-edit|color-delete', ['only' => ['store','update','destroy']]);
         $this->middleware('permission:color-create', ['only' => ['store']]);
         $this->middleware('permission:color-edit', ['only' => ['update']]);
         $this->middleware('permission:color-delete', ['only' => ['destroy']]);

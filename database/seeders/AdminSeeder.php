@@ -23,11 +23,27 @@ class AdminSeeder extends Seeder
             'sex' => 'Male',
         ]);
 
+
+
         $roleAdmin = Role::create(['name' => 'admin','guard_name' => 'web']);
         $roleUser = Role::create(['name' => 'user','guard_name' => 'web']);
         $roleManager = Role::create(['name' => 'manager','guard_name' => 'web']);
         $permissions = Permission::pluck('id','id')->all();
         $roleAdmin->syncPermissions($permissions);
         $user->assignRole([$roleAdmin->id]);
+        $managerPermissions = [
+            'product-list', 'product-create', 'product-edit',
+            'category-list', 'category-create', 'category-edit',
+            'order-list', 'order-create', 'order-edit',
+            'color-list', 'color-create', 'color-edit',
+            'size-list', 'size-create', 'size-edit',
+            'brand-list', 'brand-create', 'brand-edit',
+            'banner-list', 'banner-create', 'banner-edit',
+        ];
+        $roleManager->syncPermissions($managerPermissions);
+        // $userPermissions = [
+        //     'order-list', 'order-create', 'order-edit',
+        // ];
+        // $roleUser->syncPermissions($userPermissions);
     }
 }
