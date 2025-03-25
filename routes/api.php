@@ -33,6 +33,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('login',[AuthController::class, 'login']);
 Route::post('register', [AuthController::class, 'register']);
 
+//GoogleAuth
+
+
 Route::prefix('products')->group(function(){
     Route::get('/list', [ProductController::class, 'index']);
     Route::get('/show/{id}', [ProductController::class, 'show']);

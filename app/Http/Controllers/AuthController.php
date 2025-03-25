@@ -6,14 +6,73 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 class AuthController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('jwt.auth', ['except' => ['login', 'register']]);
+        $this->middleware('jwt.auth', 
+        ['except' => 
+            [
+                'login', 
+                'register', 
+                'redirectToGoogle',
+                'handleGoogleCallback'
+            ]
+        ]);
     }
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->stateless()->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+    
+            $user = User::where('email', $googleUser->getEmail())->first();
+    
+            if (!$user) {
+                $user = User::create([
+                    'username' => $googleUser->getName() ?? $googleUser->getNickname() ?? 'google_user_' . Str::random(5),
+                    'email' => $googleUser->getEmail(),
+                    'google_id' => $googleUser->getId(),
+                    'sex' => 'other',
+                    'password' => Hash::make(Str::random(16)),
+                ]);
+                $user->assignRole('admin');
+            }
+            if (!$user->google_id) {
+                $user->google_id = $googleUser->getId();
+                $user->save();
+            }
+            $token = JWTAuth::fromUser($user);
+            
+            $roles = $user->getRoleNames();
+            $user->Roles = $roles;
+            
+            $permissions = $user->getAllPermissions()->pluck('name');
+            $user->Permissions = $permissions;
+    
+            $user->token = $token;
+            $data = $user->makeHidden('permissions', 'roles')->toArray();
+    
+            return redirect("http://localhost:3000/google-auth-success?token={$token}");
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to authenticate with Google',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+
     public function login(Request $request)
     {
         try{
