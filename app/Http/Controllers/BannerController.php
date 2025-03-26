@@ -15,6 +15,15 @@ class BannerController extends Controller
         $this->middleware('permission:banner-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:banner-delete', ['only' => ['destroy']]);
     }
+
+    public function BannerCount(){
+
+        $count = Banner::count();
+        return response()->json([
+        'count' => $count
+        ]);
+
+    }
     public function index(){
         try{
             $banner = Banner::with("getUser")->get();
@@ -175,4 +184,6 @@ public function store(Request $request)
             ]);
         }
     }
+
+
 }

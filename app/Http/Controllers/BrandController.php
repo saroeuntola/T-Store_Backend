@@ -8,12 +8,22 @@ use Illuminate\Support\Facades\Validator;
 
 class BrandController extends Controller
 {
+
   public function __construct(){
 
         $this->middleware('permission:brand-create|brand-edit|brand-delete', ['only' => ['store','update','destroy']]);
         $this->middleware('permission:brand-create', ['only' => ['store']]);
         $this->middleware('permission:brand-edit', ['only' => ['update']]);
         $this->middleware('permission:brand-delete', ['only' => ['destroy']]);
+    }
+
+
+    public function BrandCount(){
+
+        $count = Brand::count();
+        return response()->json([
+        'count' => $count
+        ]);
     }
     public function index(){
         try{

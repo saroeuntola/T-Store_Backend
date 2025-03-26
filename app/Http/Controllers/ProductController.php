@@ -15,16 +15,39 @@ class ProductController extends Controller
         $this->middleware('permission:product-edit', ['only' => ['update']]);
         $this->middleware('permission:product-delete', ['only' => ['destroy']]);
     }
-    public function index(){
-        try{
-            $products = Product::with('getCategory','getUser','sizes', 'colors')->get();
-            return response()->json(['message'=>'success', 'product'=>$products]);
-        }
-        catch(\Exception $ex){
+      public function ProductCount(){
 
-            return response()->json(['message'=>'error', 'error'=>$ex->getMessage()]);
-        }
+        $count = Product::count();
+        return response()->json([
+        'count' => $count
+        ]);
     }
+public function index(Request $request){
+    try {
+        $limit = $request->input('limit');
+
+        $query = Product::with('getCategory', 'getUser', 'sizes', 'colors');
+
+
+        if ($limit) {
+            $query->take($limit);
+        }
+
+        $products = $query->get();
+
+        return response()->json([
+            'message' => 'success',
+            'product' => $products
+        ]);
+    }
+    catch (\Exception $ex) {
+        return response()->json([
+            'message' => 'error',
+            'error' => $ex->getMessage()
+        ]);
+    }
+}
+
 
 public function store(Request $request)
 {
@@ -112,7 +135,7 @@ public function update(Request $request, $id)
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
-            'category_id' => $request->category_id,  
+            'category_id' => $request->category_id,
             'user_id' => $request->user_id,
         ];
         if ($request->hasFile('image')) {

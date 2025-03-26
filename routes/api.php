@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ColorController;
+use App\Http\Controllers\CountController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProductController;
@@ -32,17 +34,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //public route
 Route::post('login',[AuthController::class, 'login']);
 Route::post('register', [AuthController::class, 'register']);
-
-//GoogleAuth
-
-
+Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
+Route::post('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
 Route::prefix('products')->group(function(){
     Route::get('/list', [ProductController::class, 'index']);
     Route::get('/show/{id}', [ProductController::class, 'show']);
 
 });
 Route::get('banner/list', [BannerController::class, 'index']);
- Route::get('brand/list', [BrandController::class, 'index']);
+Route::get('brand/list', [BrandController::class, 'index']);
 
 
 // protected route
@@ -63,6 +63,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::apiResource('/orders',OrdersController::class);
     Route::apiResource('/colors',ColorController::class);
     Route::apiResource('/sizes',SizeController::class);
+     Route::apiResource('/count',CountController::class);
     Route::post('/update_banner/{id}', [BannerController::class, 'update']);
 
     Route::prefix('users')->group(function () {

@@ -16,7 +16,13 @@ class OrdersController extends Controller
         $this->middleware('permission:order-edit', ['only' => ['update']]);
         $this->middleware('permission:order-delete', ['only' => ['destroy']]);
     }
+  public function OrdersCount(){
 
+        $count = Orders::count();
+        return response()->json([
+        'count' => $count
+        ]);
+    }
      public function index(){
         try{
 

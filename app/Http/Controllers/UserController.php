@@ -10,6 +10,13 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+  public function UserCount(){
+
+        $count = User::count();
+        return response()->json([
+        'count' => $count
+        ]);
+    }
 
    public function index()
 {
@@ -18,7 +25,7 @@ class UserController extends Controller
 
         // Loop through users and attach roles
         foreach ($users as $user) {
-            $user->roles = $user->getRoleNames(); // Assuming Spatie Roles & Permissions package
+            $user->roles = $user->getRoleNames();
         }
 
         return response()->json(['user' => $users]);
@@ -80,7 +87,7 @@ public function store(Request $request)
     }
 
 
-    return response()->json([
+    return response ()->json([
         'status' => 'success',
         'user' => $user,
     ]);
