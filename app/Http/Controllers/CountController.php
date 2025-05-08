@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class CountController extends Controller
 {
 
-    public function Count(){
+    public function index(){
         $user = DB::table('users')->count();
         $product = DB::table('product')->count();
         $banner = DB::table('banner')->count();

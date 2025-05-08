@@ -8,6 +8,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\CountController;
 use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RolesController;
@@ -32,6 +33,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 //public route
+   Route::get('/checkout-aba', [PaymentController::class, 'checkoutWithAba']);
 Route::post('login',[AuthController::class, 'login']);
 Route::post('register', [AuthController::class, 'register']);
 Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
@@ -52,6 +54,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('me', [AuthController::class, 'me']);
     Route::apiResource('/permissions',PermissionController::class);
 
+
     Route::apiResource('/category',CategoryController::class);
     Route::prefix('products')->group(function(){
         Route::post('/create', [ProductController::class,'store']);
@@ -63,7 +66,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::apiResource('/orders',OrdersController::class);
     Route::apiResource('/colors',ColorController::class);
     Route::apiResource('/sizes',SizeController::class);
-     Route::apiResource('/count',CountController::class);
+     Route::get('/count',[CountController::class,'index']);
     Route::post('/update_banner/{id}', [BannerController::class, 'update']);
 
     Route::prefix('users')->group(function () {
