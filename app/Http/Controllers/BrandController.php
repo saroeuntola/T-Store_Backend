@@ -18,16 +18,9 @@ class BrandController extends Controller
     }
 
 
-    public function BrandCount(){
-
-        $count = Brand::count();
-        return response()->json([
-        'count' => $count
-        ]);
-    }
     public function index(){
         try{
-            $brand = Brand::all();
+            $brand = Brand::with('getUser')->get();
             return response()->json([
                'status' => 'success',
                 'brand' => $brand
@@ -40,38 +33,45 @@ class BrandController extends Controller
         }
     }
 
-    public function store(Request $request){
-        try {
+   public function store(Request $request){
+    try {
         $validator = Validator::make($request->all(), [
             'brand_name' => 'required|string',
-            'brand_image' => 'nullble|image|mimes:jpeg,png,jpg,gif',
+            'brand_image' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             'user_id' => 'required|integer'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 400);
         }
-    $brandImage =[
+
+        $brandImage = [
             'brand_name' => $request->brand_name,
             'user_id' => $request->user_id,
         ];
 
-       if ($request->hasFile('banner_image')) {
+          if ($request->hasFile('brand_image')) {
             $image = $request->file('brand_image');
+
+            // Delete old image if exists
             if ($request->has('old_image') && $request->old_image) {
                 $oldImagePath = storage_path("app/public/brand_image/") . $request->old_image;
                 if (file_exists($oldImagePath)) {
                     unlink($oldImagePath);
                 }
             }
-            $imageName = time(). '.'. $image->getClientOriginalExtension();
-            $image->storeAs(storage_path('public/brand_image/'), $imageName);
-            $brandImage['banner_image'] = $imageName;
+
+            // Store new image
+            $imageName = time() . '.' . $image->getClientOriginalExtension();
+           $image->storeAs('public/brand_image/', $imageName);
+$brandImage['brand_image'] = $imageName;
+
         }
 
         $brand = Brand::create($brandImage);
+
         return response()->json([
-           'status' => 'success',
+            'status' => 'success',
             'brand' => $brand
         ]);
     } catch (\Exception $e) {
@@ -80,13 +80,14 @@ class BrandController extends Controller
             'message' => $e->getMessage()
         ], 500);
     }
-    }
+}
+
 
     public function update(Request $request, $id){
               try {
         $validator = Validator::make($request->all(), [
             'brand_name' => 'required|string',
-            'brand_image' => 'nullble|image|mimes:jpeg,png,jpg,gif',
+            'brand_image' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             'user_id' => 'required|integer'
         ]);
 
@@ -98,19 +99,23 @@ class BrandController extends Controller
             'brand_name' => $request->brand_name,
             'user_id' => $request->user_id,
         ];
-       if ($request->hasFile('banner_image')) {
+       if ($request->hasFile('brand_image')) {
             $image = $request->file('brand_image');
+
+            // Delete old image if provided
             if ($request->has('old_image') && $request->old_image) {
                 $oldImagePath = storage_path("app/public/brand_image/") . $request->old_image;
                 if (file_exists($oldImagePath)) {
                     unlink($oldImagePath);
                 }
             }
-            $imageName = time(). '.'. $image->getClientOriginalExtension();
-            $image->storeAs(storage_path('public/brand_image/'), $imageName);
-            $brandImage['banner_image'] = $imageName;
+
+            $imageName = time().'.'.$image->getClientOriginalExtension();
+            $image->storeAs('brand_image', $imageName, 'public');
+            $brandImage['brand_image'] = $imageName;
         }
-        $brand = Brand::findOrFail($$id);
+
+        $brand = Brand::findOrFail($id);
         $brand->update($brandImage);
         return response()->json([
            'status' => 'success',
