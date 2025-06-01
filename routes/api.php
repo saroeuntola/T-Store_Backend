@@ -45,7 +45,7 @@ Route::prefix('products')->group(function(){
 });
 Route::get('banner/list', [BannerController::class, 'index']);
 Route::get('brand/list', [BrandController::class, 'index']);
-
+Route::get('category/list', [CategoryController::class, 'index']);
 
 // protected route
 Route::middleware('jwt.auth')->group(function () {
